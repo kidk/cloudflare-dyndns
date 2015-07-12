@@ -1,0 +1,13 @@
+{
+    "name": "sava/cloudflare-dyndns",
+    "require": {
+        "nategood/commando": "*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Samuel Vandamme",
+            "email": "samuel@sava.be"
+        }
+    ]
+}
