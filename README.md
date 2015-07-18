@@ -1,6 +1,6 @@
 # Cloudflare dynamic DNS
 
-Checks if your external IP still matches a domain A record on [Cloudflare](http://cloudflare.com). If a change is detected it will update the record.
+Checks if your external IP still matches a domain A record on [Cloudflare](http://cloudflare.com). If a change is detected it will update the record. It uses the Cloudflare API 4.0 to achieve this.
 
 ## Install
 
