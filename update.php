@@ -40,54 +40,75 @@ $cli->option('d')
     ->aka('domain')
     ->require()
     ->describedAs('Domain name');
+$cli->option('t')
+    ->aka('timeout')
+    ->default(5)
+    ->describedAs('Timeout in minutes before checking');
 
 #
-# Retrieve current DNS record
+# Check function
 #
-$cloudflareData = json_decode(get('https://api.cloudflare.com/client/v4/zones/'.$cli['zone'].'/dns_records?type=A&name='.$cli['domain'].'&page=1&per_page=20&order=type&direction=desc&match=all', [
-    'X-Auth-Email: '.$cli['username'],
-    'X-Auth-Key: '.$cli['api_key'],
-    'Content-Type: application/json'
-]));
-$cloudflareRecord = $cloudflareData->result[0]->id;
-$currentIp = $cloudflareData->result[0]->content;
-
-#
-# Retrieve current IP address
-#
-$externalData = get('http://checkip.dyndns.com/');
-preg_match("/((2[0-4]|1\d|[1-9])?\d|25[0-5])(\.(?1)){3}/", $externalData, $matches);
-$outsideIp = $matches[0];
-
-
-#
-# Update IP when needed
-#
-if ($currentIp !== $outsideIp) {
-    echo "ip change detected: {$currentIp} => {$outsideIp}".PHP_EOL;
-
+function check($zone, $domain, $username, $api_key) {
     #
-    # Push updated IP to cloudflare
+    # Retrieve current DNS record
     #
-    $cloudflareResponse = json_decode(get('https://api.cloudflare.com/client/v4/zones/'.$cli['zone'].'/dns_records/'.$cloudflareRecord, [
-        'X-Auth-Email: '.$cli['username'],
-        'X-Auth-Key: '.$cli['api_key'],
+    $cloudflareData = json_decode(get('https://api.cloudflare.com/client/v4/zones/'.$zone.'/dns_records?type=A&name='.$domain.'&page=1&per_page=20&order=type&direction=desc&match=all', [
+        'X-Auth-Email: '.$username,
+        'X-Auth-Key: '.$api_key,
         'Content-Type: application/json'
-    ], (object) [
-        'id' => $cloudflareRecord,
-        'name' => $cli['domain'],
-        'content' => $outsideIp,
     ]));
+    $cloudflareRecord = $cloudflareData->result[0]->id;
+    $currentIp = $cloudflareData->result[0]->content;
 
-    if ($cloudflareResponse->success) {
-        echo "success".PHP_EOL;
-        exit(0);
+    #
+    # Retrieve current IP address
+    #
+    $externalData = get('http://checkip.dyndns.com/');
+    preg_match("/((2[0-4]|1\d|[1-9])?\d|25[0-5])(\.(?1)){3}/", $externalData, $matches);
+    $outsideIp = $matches[0];
+
+
+    #
+    # Update IP when needed
+    #
+    if ($currentIp !== $outsideIp) {
+        echo "ip change detected: {$currentIp} => {$outsideIp}".PHP_EOL;
+
+        #
+        # Push updated IP to cloudflare
+        #
+        $cloudflareResponse = json_decode(get('https://api.cloudflare.com/client/v4/zones/'.$zone.'/dns_records/'.$cloudflareRecord, [
+            'X-Auth-Email: '.$username,
+            'X-Auth-Key: '.$api_key,
+            'Content-Type: application/json'
+        ], (object) [
+            'id' => $cloudflareRecord,
+            'name' => $domain,
+            'content' => $outsideIp,
+        ]));
+
+        if ($cloudflareResponse->success) {
+            echo "success".PHP_EOL;
+            exit(0);
+        } else {
+            echo "failed".PHP_EOL;
+            var_dump($cloudflareResponse);
+            exit(1);
+        }
     } else {
-        echo "failed".PHP_EOL;
-        var_dump($cloudflareResponse);
-        exit(1);
+        echo "ip correct".PHP_EOL;
+        exit(0);
     }
-} else {
-    echo "ip correct".PHP_EOL;
-    exit(0);
+
+}
+
+#
+# Check loop
+#
+while(True) {
+    # Check
+    check($cli['zone'], $cli['domain'], $cli['username'], $cli['api_key']);
+
+    # Sleep
+    sleep($cli['timeout'] * 60);
 }
