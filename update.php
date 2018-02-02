@@ -72,7 +72,7 @@ function check($zone, $domain, $username, $api_key) {
     # Update IP when needed
     #
     if ($currentIp !== $outsideIp) {
-        echo "ip change detected: {$currentIp} => {$outsideIp}".PHP_EOL;
+        echo "IP change detected: {$currentIp} => {$outsideIp}".PHP_EOL;
 
         #
         # Push updated IP to cloudflare
@@ -88,27 +88,39 @@ function check($zone, $domain, $username, $api_key) {
         ]));
 
         if ($cloudflareResponse->success) {
-            echo "success".PHP_EOL;
-            exit(0);
+            echo "Success".PHP_EOL;
+
+            return;
         } else {
-            echo "failed".PHP_EOL;
+            echo "Failed".PHP_EOL;
             var_dump($cloudflareResponse);
-            exit(1);
+
+            return;
         }
     } else {
-        echo "ip correct".PHP_EOL;
-        exit(0);
+        echo "IP correct".PHP_EOL;
     }
 
 }
 
 #
+# Init
+#
+echo "Starting cloudflare-dyndns".PHP_EOL;
+echo "Options: ".PHP_EOL;
+var_dump($cli->getFlagValues());
+echo PHP_EOL;
+
+#
 # Check loop
 #
+echo "Starting run".PHP_EOL;
 while(True) {
     # Check
     check($cli['zone'], $cli['domain'], $cli['username'], $cli['api_key']);
 
     # Sleep
-    sleep($cli['timeout'] * 60);
+    $time = $cli['timeout'] * 60;
+    echo "Sleeping ".$time." seconds.".PHP_EOL;
+    sleep($time);
 }
