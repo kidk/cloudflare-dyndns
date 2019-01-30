@@ -9,7 +9,7 @@ function get($url, $headers = [], $data = []) {
     $curl = curl_init($url);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
-    if (count($data) > 0 || is_object($data)) {
+    if (is_object($data) || (is_array($data) && count($data) > 0)) {
         $headers[] = 'X-HTTP-Method-Override: PUT';
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
