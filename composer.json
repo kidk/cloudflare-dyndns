@@ -1,7 +1,8 @@
 {
     "name": "sava/cloudflare-dyndns",
     "require": {
-        "nategood/commando": "*"
+        "nategood/commando": "*",
+        "cloudflare/sdk": "^1.1"
     },
     "license": "MIT",
     "authors": [
