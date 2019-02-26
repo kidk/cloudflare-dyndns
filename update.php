@@ -71,7 +71,7 @@ while(True) {
 
     // Retrieve remote IP from server
     $externalData = get('http://checkip.dyndns.com/');
-    preg_match("/((2[0-4]|1\d|[1-9])?\d|25[0-5])(\.(?1)){3}/", $externalData, $matches);
+    preg_match("/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/", $externalData, $matches);
     $outsideIp = $matches[0];
 
     // Compare and update if needed
